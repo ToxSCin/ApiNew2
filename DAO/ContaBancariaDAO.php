@@ -3,6 +3,7 @@
 namespace APINEW2\DAO;
 
 use APINEW2\Model\ContaBancaria;
+
 use PDO;
 
 class ContaBancariaDAO
@@ -69,13 +70,5 @@ class ContaBancariaDAO
         $stmt->bindValue(':saldo', $contaBancaria->getSaldo(), PDO::PARAM_STR);
 
         return $stmt->execute();
-    }
-
-    public static function buscarContaPorId(int $id): ?ContaBancaria
-    {
-        $pdo = new PDO('mysql:host=localhost;dbname=banco', 'usuario', 'senha');
-        $dao = new ContaBancariaDAO($pdo);
-
-        return $dao->buscarPorId($id);
     }
 }

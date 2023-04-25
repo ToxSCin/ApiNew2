@@ -1,6 +1,6 @@
 <?php
 
-namespace APINEW2\Controllers;
+namespace APINEW2\Controller;
 
 use APINEW2\Models\ContaBancaria;
 use APINEW2\Models\Transacao;
@@ -25,35 +25,35 @@ class TransferenciaController
             // Retorna uma resposta de erro
             $response = array('mensagem' => 'Erro ao realizar transferência.');
             $this->setResponseAsJSON($response, false);
+        } else {
+            // Cria uma transação para a transferência
+            $transacao = new Transacao($id_conta_origem, $id_conta_destino, $valor_transferencia);
+
+            // Atualiza os saldos das contas envolvidas na transferência
+            $conta_origem->debitar($valor_transferencia);
+            $conta_destino->creditar($valor_transferencia);
+
+            // Salva a transação e as contas bancárias no banco de dados
+            $contaBancariaDAO = new ContaBancariaDAO();
+            $transacaoDAO = new TransacaoDAO();
+
+            $contaBancariaDAO->salvar($conta_origem);
+            $contaBancariaDAO->salvar($conta_destino);
+            $transacaoDAO->salvar($transacao);
+
+            // Retorna uma resposta de sucesso
+            $response = array('mensagem' => 'Transferência realizada com sucesso.');
+            $this->setResponseAsJSON($response);
         }
-
-        // Cria uma transação para a transferência
-        $transacao = new Transacao($id_conta_origem, $id_conta_destino, $valor_transferencia);
-
-        // Atualiza os saldos das contas envolvidas na transferência
-        $conta_origem->debitar($valor_transferencia);
-        $conta_destino->creditar($valor_transferencia);
-
-        // Salva a transação e as contas bancárias no banco de dados
-        ContaBancariaDAO::salvar($conta_origem);
-        ContaBancariaDAO::salvar($conta_destino);
-        TransacaoDAO::salvar($transacao);
-
-        // Retorna uma resposta de sucesso
-        $response = array('mensagem' => 'Transferência realizada com sucesso.');
-        $this->setResponseAsJSON($response);
     }
 
-    protected static function setResponseAsJSON($data, $request_status = true)
+    protected function setResponseAsJSON($data, $request_status = true)
     {
         $response = array('response_data' => $data, 'response_successful' => $request_status);
 
         header("Access-Control-Allow-Origin: *");
         header("Content-type: application/json; charset=utf-8");
         header("Cache-Control: no-cache, must-revalidate");
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
-        header("Pragma: public");
-
-        exit(json_encode($response));
+        echo json_encode($response);
     }
 }

@@ -2,6 +2,9 @@
 
 namespace APINEW2\Models;
 
+use APINEW2\Util\Database;
+
+
 class Transacao
 {
     private $id;
@@ -39,5 +42,39 @@ class Transacao
     public function getValor()
     {
         return $this->valor;
+    }
+
+    public function salvar()
+    {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $stmt = $conn->prepare('INSERT INTO transacoes (id_conta_origem, id_conta_destino, valor) VALUES (:id_conta_origem, :id_conta_destino, :valor)');
+        $stmt->bindValue(':id_conta_origem', $this->id_conta_origem);
+        $stmt->bindValue(':id_conta_destino', $this->id_conta_destino);
+        $stmt->bindValue(':valor', $this->valor);
+        $stmt->execute();
+
+        $this->id = $conn->lastInsertId();
+    }
+
+    public function buscarPorId($id)
+    {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $stmt = $conn->prepare('SELECT * FROM transacoes WHERE id = :id');
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+
+        if ($result) {
+            $transacao = new Transacao($result['id_conta_origem'], $result['id_conta_destino'], $result['valor']);
+            $transacao->setId($result['id']);
+            return $transacao;
+        } else {
+            return null;
+        }
     }
 }

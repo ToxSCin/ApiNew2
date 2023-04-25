@@ -81,4 +81,34 @@ class ContaBancaria
     {
         $this->saldo = $saldo;
     }
+
+    public function creditar(float $valor): void
+    {
+        $this->saldo += $valor;
+    }
+
+    public function debitar(float $valor): bool
+    {
+        if ($this->saldo < $valor) {
+            return false;
+        }
+
+        $this->saldo -= $valor;
+        return true;
+    }
+
+    public function salvar()
+    {
+        $db = new \PDO('mysql:host=localhost;dbname=nome_do_banco', 'usuario', 'senha');
+    
+        if ($this->getId()) {
+            $stmt = $db->prepare('UPDATE contas_bancarias SET nome_titular = ?, cpf_cnpj_titular = ?, banco = ?, agencia = ?, numero_conta = ?, saldo = ? WHERE id = ?');
+            $stmt->execute([$this->getNomeTitular(), $this->getCpfCnpjTitular(), $this->getBanco(), $this->getAgencia(), $this->getNumeroConta(), $this->getSaldo(), $this->getId()]);
+        } else {
+            $stmt = $db->prepare('INSERT INTO contas_bancarias (nome_titular, cpf_cnpj_titular, banco, agencia, numero_conta, saldo) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$this->getNomeTitular(), $this->getCpfCnpjTitular(), $this->getBanco(), $this->getAgencia(), $this->getNumeroConta(), $this->getSaldo()]);
+            $this->setId($db->lastInsertId());
+        }
+    }
+    
 }
